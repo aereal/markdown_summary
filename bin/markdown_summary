@@ -1,0 +1,34 @@
+#!/usr/bin/env ruby
+
+lib = File.expand_path('../../lib', __FILE__)
+$LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+
+require 'markdown_summary'
+
+require 'optparse'
+require 'pathname'
+
+module MarkdownSummary
+  class CLI
+    def initialize(argv)
+      @argv = argv
+    end
+
+    def run
+      settings = parse_options(@argv)
+      generator = MarkdownSummary::Generator.new(settings)
+      generator.generate
+    end
+
+    def parse_options(argv)
+      custom_settings = MarkdownSummary::Settings.new
+      OptionParser.new do |o|
+        o.on('-f', '--summary-file FILE') {|v| custom_settings.summary_file = v }
+        o.on('-r', '--root ROOT') {|v| custom_settings.root = v }
+      end.parse!(argv)
+      MarkdownSummary::Settings.merge(MarkdownSummary::DefaultSettings, custom_settings)
+    end
+  end
+end
+
+MarkdownSummary::CLI.new(ARGV).run
